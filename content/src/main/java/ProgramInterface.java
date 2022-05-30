@@ -119,7 +119,7 @@ public class ProgramInterface {
         jFrame.toFront();
         jFrame.setVisible(true);
         jFrame.setResizable(false);
-        jFrame.setBounds(20, 40, 225, 300);
+        jFrame.setBounds(20, 40, 250, 300);
         jFrame.getContentPane().setBackground(Color.white);
 
         JPanel labels = new JPanel();
@@ -134,6 +134,8 @@ public class ProgramInterface {
         Label spaceLabel = new Label("Space: fast-forward object");
         Label rLabel = new Label("R: restart game");
         Label fLabel = new Label("F: start/stop auto-solver");
+        Label lLabel = new Label("L: start/stop 2 auto-solver");
+
 
         labels.add(welcomeLabel);
         labels.add(keyLabel);
@@ -144,6 +146,7 @@ public class ProgramInterface {
         labels.add(spaceLabel);
         labels.add(rLabel);
         labels.add(fLabel);
+        labels.add(lLabel);
 
         jFrame.add(labels);
     }
