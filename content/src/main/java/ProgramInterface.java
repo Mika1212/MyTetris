@@ -4,9 +4,8 @@ import java.awt.*;
 public class ProgramInterface {
     JFrame jFrame;
     private final ProgramLogic programLogic;
-    private int width = 447;
-    private int height = 791;
-    private int cubeWall = 35;
+    private final int width = 444;
+    private final int height = 790;
     public Color wallsColor = Color.DARK_GRAY;
     public Color emptyColor = Color.BLACK;
     public Color[][] matrix;
@@ -32,6 +31,7 @@ public class ProgramInterface {
 
             g2.setColor(Color.BLACK);
             g2.fillRect(0, 0, width, height);
+            int cubeWall = 35;
             for (int i = 0; i < iBorder; i++) {
                 for (int j = 0; j < jBorder; j++) {
                     g2.setColor(programLogic.matrix[i][j]);
@@ -41,7 +41,7 @@ public class ProgramInterface {
 
             if (!programLogic.getGameOver()) {
                 g2.setColor(new Color(250, 250, 250));
-                int y = programLogic.getSolve() ? 0 : programLogic.futurePosition(programLogic.matrix, programLogic.currentShape);
+                int y = programLogic.getSolve() ? 0 : programLogic.getCurrentShape().futurePosition(programLogic.matrix);
                 for (Point point : programLogic.currentShape.getShapeCoordinates()[programLogic.currentShape.getCurrentRotation()]) {
                     g2.fillRect((programLogic.currentShape.getShift().x + point.x) * (cubeWall + 1),
                             (point.y + programLogic.currentShape.getShift().y + y) * (cubeWall + 1), cubeWall, cubeWall);

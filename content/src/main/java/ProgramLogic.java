@@ -3,8 +3,9 @@ import java.util.*;
 
 public class ProgramLogic {
 
+    public MySolverGreedy mySolverGreedy;
 
-    private boolean gameProcess = true;
+    final private boolean gameProcess = true;
     private boolean play = false;
     private boolean gameOver = false;
     private boolean pause = false;
@@ -12,35 +13,64 @@ public class ProgramLogic {
     private boolean checked = false;
     private ProgramInterface programInterface;
 
-    public int iBorder = 12;
-    public int jBorder = 21;
-    public int rotationBorder = 4;
-    public int numberOfDifferentShapes = 7;
-    public Color[][] matrix = new Color[iBorder][jBorder];
+    final public int iBorder = 12;
+    final public int jBorder = 21;
+    final public int rotationBorder = 4;
+    final public int numberOfDifferentShapes = 7;
+    final public Color[][] matrix = new Color[iBorder][jBorder];
     public ArrayDeque<Integer> allShapes = new ArrayDeque<>();
     public int clearedLines;
 
     public NewShape currentShape;
     private MyKeyboardListener myKeyboardListener;
 
-    private boolean mySolverMonteCarlo = false;
-    private boolean mySolverFirst = false;
-    public double[] score;
-    public int[] numberOfSuccess;
-    public int numberOfGeneratedShapes = 10;
-    public int numberOfTries = 1000;
-    public int amountOfShapes = numberOfGeneratedShapes;
+    private boolean mySolverGreedyFlag = false;
+    private boolean mySolverGreedyModifiedFlag = false;
+    public int amountOfShapes = 1000;
+    public ProgramInterface getProgramInterface() {
+        return programInterface;
+    }
 
-    public boolean getMySolverFirst() {
-        return mySolverFirst;
+    public NewShape getCurrentShape() {
+        return currentShape;
+    }
+
+    public int getIBorder() {
+        return iBorder;
+    }
+
+    public int getJBorder() {
+        return jBorder;
+    }
+
+    public int getRotationBorder() {
+        return rotationBorder;
+    }
+
+    public void setMySolverGreedyModifiedFlag(final boolean value) {
+        mySolverGreedyModifiedFlag = value;
+    }
+
+    public boolean getMySolverGreedyModifiedFlag() {
+        return mySolverGreedyModifiedFlag;
+    }
+
+    public void startSolveGreedyModified() {
+        if (!getMySolverGreedyModifiedFlag()) {
+            startSolve();
+            setMySolverGreedyFlag(false);
+            setMySolverGreedyModifiedFlag(true);
+        } else {
+            stopSolve();
+        }
+    }
+
+    public boolean getMySolverGreedyFlag() {
+        return mySolverGreedyFlag;
     }
 
     public boolean getChecked() {
         return checked;
-    }
-
-    public boolean getMySolverMonteCarlo() {
-        return mySolverMonteCarlo;
     }
 
     public boolean getSolve() {
@@ -61,42 +91,40 @@ public class ProgramLogic {
 
 
 
-    private void setChecked(boolean value) {
+    public void setChecked(final boolean value) {
         checked = value;
     }
 
-    public void setSolve(boolean value) {
+    public void setSolve(final boolean value) {
         this.solve = value;
     }
 
-    public void setMyKeyboardListener(MyKeyboardListener myKeyboardListener) {
+    public void setMyKeyboardListener(final MyKeyboardListener myKeyboardListener) {
         this.myKeyboardListener = myKeyboardListener;
     }
 
     //Method to assign jFrame
-    public void setProgramInterface(ProgramInterface programInterface) {
+    public void setProgramInterface(final ProgramInterface programInterface) {
         this.programInterface = programInterface;
     }
 
-    public void setPause(boolean value) {
+    public void setPause(final boolean value) {
         myKeyboardListener.block = value;
         pause = value;
     }
 
-    public void setPlay(boolean value) {
+    public void setPlay(final boolean value) {
         play = value;
     }
 
-    public void setGameOver(boolean value) {
+    public void setGameOver(final boolean value) {
         gameOver = value;
         if (value) myKeyboardListener.block = true;
     }
 
-
-
-
     public void startSolve() {
         myKeyboardListener.block = true;
+        mySolverGreedy = new MySolverGreedy(this);
         setChecked(false);
         setSolve(true);
         setPlay(false);
@@ -106,179 +134,31 @@ public class ProgramLogic {
         myKeyboardListener.block = false;
         setChecked(true);
         setSolve(false);
-        setMySolverFirst(false);
-        setMySolverMonteCarlo(false);
+        setMySolverGreedyFlag(false);
+        setMySolverGreedyModifiedFlag(false);
         setPlay(true);
     }
 
-
-    public void setMySolverFirst(boolean value) {
-        mySolverFirst = value;
-    }
-
-    public void startSolveFirst() {
-        if (!getMySolverFirst()) {
+    public void startSolveGreedy() {
+        if (!getMySolverGreedyFlag()) {
             startSolve();
-            setMySolverFirst(true);
-            setMySolverMonteCarlo(false);
+            setMySolverGreedyFlag(true);
+            setMySolverGreedyModifiedFlag(false);
+
         } else {
             stopSolve();
         }
     }
 
-    public void solverFirst() throws InterruptedException {
-        placeShapeInBestPosition();
+    public void setMySolverGreedyFlag(final boolean value) {
+        mySolverGreedyFlag = value;
     }
 
-    public void placeShapeInBestPosition() {
-        int x = 0;
-        int y;
-        double score;
-        double bestScore = -1e6;
-        int bestRotation = 0;
-        int yOld = currentShape.getShift().y;
-        currentShape.setCurrentRotation(0);
-        Color[][] matrixHelp = new Color[iBorder][jBorder];
-        for (int iHelp = 0; iHelp < iBorder; iHelp++) {
-            System.arraycopy(this.matrix[iHelp], 0, matrixHelp[iHelp], 0, jBorder);
-        }
-
-        for (int k = 0; k < rotationBorder; k++) {
-            for (int i = 0; i < iBorder - 1; i++) {
-
-                currentShape.setShift(i,0);
-                if (isBump(0, 0, matrixHelp , currentShape)) continue;
-                y = futurePosition(matrixHelp, currentShape);
-                for (Point point1: currentShape.getShapeCoordinates()[currentShape.getCurrentRotation()]) {
-                    matrixHelp[point1.x + currentShape.getShift().x][point1.y + y] = currentShape.getCurrentColor();
-                }
-                score = checkScore(matrixHelp);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestRotation = k;
-                    x = i;
-                }
-                for (Point point1: currentShape.getShapeCoordinates()[currentShape.getCurrentRotation()]) {
-                    matrixHelp[point1.x + currentShape.getShift().x][point1.y + y] = programInterface.emptyColor;
-                }
-            }
-            if (k != rotationBorder - 1) currentShape.setCurrentRotation(currentShape.getCurrentRotation() + 1);
-        }
-        currentShape.setCurrentRotation(bestRotation);
-        currentShape.setShift(x, yOld);
-        setChecked(false);
-    }
-
-
-    public void setMySolverMonteCarlo(boolean value) {
-        mySolverMonteCarlo = value;
-    }
-
-    public void startSolveMonteCarlo() {
-        if (!getMySolverMonteCarlo()) {
-            startSolve();
-            setMySolverFirst(false);
-            setMySolverMonteCarlo(true);
-        } else {
-            stopSolve();
-        }
-    }
-
-    public void solverMonteCarlo() {
-        score = new double[104];
-        numberOfSuccess = new int[104];
-
-        NewShape newShape = new NewShape(currentShape);
-        newShape.setCurrentRotation(0);
-
-
-        for (int k = 0; k < rotationBorder; k++) {
-            for (int i = 0; i < iBorder - 1; i++) {
-
-                Color[][] matrixHelp = new Color[iBorder][jBorder];
-                for (int iHelp = 0; iHelp < iBorder; iHelp++) {
-                    System.arraycopy(this.matrix[iHelp], 0, matrixHelp[iHelp], 0, jBorder);
-                }
-
-                newShape.setShift(i, 0);
-                if (isBump(0, 0, matrixHelp, newShape)) {
-                    score[i * 10 + newShape.getCurrentRotation()] = -1e9;
-                    newShape.setShift(4, 0);
-                    continue;
-                }
-                int y = futurePosition(matrixHelp, newShape);
-                for (Point point: newShape.getShapeCoordinates()[newShape.getCurrentRotation()]) {
-                    matrixHelp[point.x + newShape.getShift().x][point.y + y] = newShape.getCurrentColor();
-                }
-
-                algorithmMonteCarlo(matrixHelp, allShapes, newShape.getShift().x * 10 + newShape.getCurrentRotation());
-            }
-
-            if (k != rotationBorder - 1) newShape.setCurrentRotation(newShape.getCurrentRotation() + 1);
-        }
-
-        double bestScore = -1e9;
-        int bestInfo = 40;
-
-        for (int i = 0; i < 104; i++) {
-            if (i % 10 < rotationBorder && numberOfSuccess[i] > 0) {
-
-                double currScore = score[i] / numberOfSuccess[i];
-                if (currScore > bestScore) {
-                    bestScore = currScore;
-                    bestInfo = i;
-                }
-
-            }
-        }
-
-        currentShape.setCurrentRotation(bestInfo % 10);
-        currentShape.setShift(bestInfo / 10, 0);
-        setChecked(true);
-    }
-
-    public void algorithmMonteCarlo(Color[][] matrixHelp, ArrayDeque<Integer> allShapesOriginal, int index) {
-        for (int j = 0; j < numberOfTries; j++) {
-
-            ArrayDeque<Integer> allShapesHelp = allShapesOriginal.clone();
-            for (int i = 0; i < numberOfGeneratedShapes; i++) {
-                NewShape newShape = newShape(allShapesHelp);
-                if (!isGameOver(matrixHelp, newShape)) {
-                    do {
-                        newShape.setShift((int) (Math.random() * (iBorder - 1)), 0);
-                        newShape.setCurrentRotation((int) (Math.random() * rotationBorder));
-                    } while (isBump(0, 0, matrixHelp, newShape));
-
-                    int y = futurePosition(matrixHelp, newShape);
-                    for (Point point : newShape.getShapeCoordinates()[newShape.getCurrentRotation()]) {
-                        matrixHelp[point.x + newShape.getShift().x][point.y + y] = Color.MAGENTA;
-                    }
-
-                } else break;
-
-                if (i == numberOfGeneratedShapes - 1) {
-                    numberOfSuccess[index]++;
-                }
-                score[index] += checkScore(matrixHelp);
-
-                clearFullRows(matrixHelp, false);
-            }
-
-            for (int i = 1; i < iBorder - 1; i++) {
-                for (int j1 = 0; j1 < jBorder - 1; j1++) {
-                    if (matrixHelp[i][j1] == Color.MAGENTA) matrixHelp[i][j1] = programInterface.emptyColor;
-                }
-            }
-        }
-    }
-
-
-
-    public double checkScore(Color[][] matrix) {
+    public double checkScore(final Color[][] matrix) {
         return height(matrix) + lines(matrix) + bumpiness(matrix);
     }
 
-    public double height(Color[][] matrix) {
+    public double height(final Color[][] matrix) {
         int holes = 0;
         int height = 0;
         for (int i = 1; i < iBorder - 1; i++) {
@@ -297,7 +177,7 @@ public class ProgramLogic {
         return -0.510066 * height + -0.35663 * holes;
     }
 
-    public double lines(Color[][] matrix) {
+    public double lines(final Color[][] matrix) {
         int lines = 0;
         for (int j = jBorder - 2; j > 0 ; j--) {
             boolean flag = true;
@@ -313,7 +193,7 @@ public class ProgramLogic {
         return 0.760666 * lines;
     }
 
-    public double bumpiness(Color[][] matrix) {
+    public double bumpiness(final Color[][] matrix) {
         int bumpiness = 0;
         int height1 = 0;
         for (int j = 0; j < jBorder; j++) {
@@ -337,32 +217,7 @@ public class ProgramLogic {
         return -0.184483 * bumpiness;
     }
 
-
-
-    public boolean isBump(int x, int y, Color[][] matrix, NewShape newShape) {
-        for (Point point: newShape.getShapeCoordinates()[newShape.getCurrentRotation()]) {
-            if (matrix[point.x + newShape.getShift().x + x][point.y + newShape.getShift().y + y] != programInterface.emptyColor) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public int futurePosition(Color[][] matrix, NewShape newShape) {
-        int minY = jBorder + 1;
-        for (Point point: newShape.getShapeCoordinates()[newShape.getCurrentRotation()]) {
-            int y = 0;
-            for (int j = point.y + newShape.getShift().y + 1; j < jBorder - 1; j++) {
-                if (matrix[point.x + newShape.getShift().x][j] == programInterface.emptyColor) {
-                    y++;
-                } else break;
-            }
-            if (y < minY) minY = y;
-        }
-        return minY;
-    }
-
-    public int clearFullRows(Color[][] matrix, boolean toAdd) {
+    public int clearFullRows(final Color[][] matrix, boolean toAdd) {
         int amount = 0;
         for (int k = 0; k < rotationBorder; k++) {
             for (int j = jBorder - 2; j > 0; j--) {
@@ -392,46 +247,17 @@ public class ProgramLogic {
         return amount;
     }
 
-    public void shapeMove(int k, Color[][] matrix, NewShape newShape) {
-        for (Point point: newShape.getShapeCoordinates()[newShape.getCurrentRotation()])
-            if (matrix[newShape.getShift().x + point.x][newShape.getShift().y + point.y + 1] != programInterface.emptyColor) return;
-        if (!isBump(k, 0, matrix, newShape)) {
-            newShape.getShift().x += k;
-            programInterface.repaint();
-        }
-    }
-
-    public void upShapeRotate(Color[][] matrix, NewShape newShape) {
-        if (newShape.getCurrentRotation() < 3) newShape.setCurrentRotation(newShape.getCurrentRotation() + 1);
-        else newShape.setCurrentRotation(0);
-        if (isBump(0, 0, matrix, newShape)) {
-            if (newShape.getCurrentRotation() > 0) newShape.setCurrentRotation(newShape.getCurrentRotation() - 1);
-            else newShape.setCurrentRotation(3);
-            return;
-        }
-        programInterface.repaint();
-    }
-
-    public void downShapeRotate(Color[][] matrix, NewShape newShape) {
-        if (newShape.getCurrentRotation() > 0) newShape.setCurrentRotation(newShape.getCurrentRotation() - 1);
-        else newShape.setCurrentRotation(3);
-        if (isBump(0, 0, matrix, newShape)) {
-            if (newShape.getCurrentRotation() < 3) newShape.setCurrentRotation(newShape.getCurrentRotation() + 1);
-            else newShape.setCurrentRotation(0);
-            return;
-        }
-        programInterface.repaint();
-    }
-
     public void generateQueue() {
         allShapes = new ArrayDeque<>();
+        int a = (int) (Math.random() * 1000);
+        Random number = new Random(123);
         for (int i = 0; i < amountOfShapes; i++) {
-            int nextShape = (int) (Math.random() * numberOfDifferentShapes);
+            int nextShape = number.nextInt(7);
             allShapes.add(nextShape);
         }
     }
 
-    public boolean isGameOver(Color[][] matrix, NewShape newShape) {
+    public boolean isGameOver(final Color[][] matrix, NewShape newShape) {
         for (int k = 0; k < rotationBorder; k++) {
             if (isBump(0, 0, matrix, newShape)) {
                 return true;
@@ -440,7 +266,7 @@ public class ProgramLogic {
         return false;
     }
 
-    public NewShape newShape(ArrayDeque<Integer> allShapesHelp) {
+    public NewShape newShape(final ArrayDeque<Integer> allShapesHelp) {
         NewShape newShape = new NewShape(allShapesHelp.poll());
         newShape.setCurrentRotation((int) (Math.random() * rotationBorder));
         int numberOfNewShape = (int) (Math.random() * numberOfDifferentShapes);
@@ -448,7 +274,7 @@ public class ProgramLogic {
         return newShape;
     }
 
-    public void oneTick(Color[][] matrix, NewShape newShape) {
+    public void oneTick(final Color[][] matrix, NewShape newShape) {
         if (isBump(0, 1, matrix, newShape)) {
             stopShape(matrix, newShape);
             return;
@@ -457,7 +283,7 @@ public class ProgramLogic {
         programInterface.repaint();
     }
 
-    public void stopShape(Color[][] matrix, NewShape currentShape) {
+    public void stopShape(final Color[][] matrix, NewShape currentShape) {
         for (Point point: currentShape.getShapeCoordinates()[currentShape.getCurrentRotation()]) {
             matrix[point.x + currentShape.getShift().x][point.y + currentShape.getShift().y] = currentShape.getCurrentColor();
         }
@@ -470,6 +296,34 @@ public class ProgramLogic {
             clearFullRows(matrix, true);
         }
         setChecked(false);
+    }
+
+    public boolean isBump(int x, int y, Color[][] matrix, NewShape newShape) {
+        for (Point point: newShape.getShapeCoordinates()[newShape.getCurrentRotation()]) {
+            if (matrix[point.x + newShape.getShift().x + x][point.y + newShape.getShift().y + y] != Color.BLACK) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void shapeMoveHorizontal(int k) {
+        if (!(isBump(k, 0, matrix, currentShape))) currentShape.shapeMove(k);
+    }
+
+    public void shapeRotate(int k) {
+        switch (k) {
+            case (1) -> {
+                currentShape.upShapeRotate();
+                if (isBump(0, 0, matrix, currentShape))
+                    currentShape.downShapeRotate();
+            }
+            case (-1) -> {
+                currentShape.downShapeRotate();
+                if (isBump(0, 0, matrix, currentShape))
+                    currentShape.upShapeRotate();
+            }
+        }
     }
 
     public void setUpNewGame() {
@@ -505,14 +359,15 @@ public class ProgramLogic {
                     if (!getGameOver() && !getPause()) {
                         if (getPlay()) {
                             oneTick(matrix, currentShape);
+                            //new Timer().scheduleAtFixedRate();
                             Thread.sleep(1000);
 
                         } else if (getSolve()) {
                             if (!getChecked()) {
-                                if (getMySolverMonteCarlo()) {
-                                    solverMonteCarlo();
-                                } else if (getMySolverFirst()) {
-                                    solverFirst();
+                                if (getMySolverGreedyFlag()) {
+                                    mySolverGreedy.solverGreedy(matrix, currentShape);
+                                } else if (getMySolverGreedyModifiedFlag()) {
+                                    mySolverGreedy.solverGreedyModified(matrix, currentShape, allShapes);
                                 }
                             }
 

@@ -36,7 +36,7 @@ public class MyTests {
         programLogic.currentShape.setShift(5, 0);
         programLogic.currentShape.setShapeCoordinates(Shapes.shapes[0]);
         programLogic.currentShape.setCurrentRotation(1);
-        programLogic.shapeMove(-1, programLogic.matrix, programLogic.currentShape);
+        programLogic.getCurrentShape().shapeMove(-1);
         for (Point point: programLogic.currentShape.getShapeCoordinates()[programLogic.currentShape.getCurrentRotation()]) {
             assertEquals(5, point.x + programLogic.currentShape.getShift().x);
         }
@@ -47,7 +47,7 @@ public class MyTests {
         programLogic.currentShape.setShift(5, 0);
         programLogic.currentShape.setShapeCoordinates(Shapes.shapes[0]);
         programLogic.currentShape.setCurrentRotation(1);
-        programLogic.shapeMove(1, programLogic.matrix, programLogic.currentShape);
+        programLogic.getCurrentShape().shapeMove(1);
         for (Point point: programLogic.currentShape.getShapeCoordinates()[programLogic.currentShape.getCurrentRotation()]) {
             assertEquals(7, point.x + programLogic.currentShape.getShift().x);
         }
@@ -102,7 +102,7 @@ public class MyTests {
             programLogic.matrix[i][19] = new Color(71, 156, 48);
         }
 
-        int y = programLogic.futurePosition(programLogic.matrix, programLogic.currentShape);
+        int y = programLogic.getCurrentShape().futurePosition(programLogic.matrix);
         for (Point point : programLogic.currentShape.getShapeCoordinates()[programLogic.currentShape.getCurrentRotation()]) {
             assertEquals(18, programLogic.currentShape.getShift().y + y + point.y);
         }

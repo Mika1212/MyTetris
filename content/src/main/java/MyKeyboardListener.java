@@ -19,23 +19,28 @@ public class MyKeyboardListener implements KeyListener {
         if (!block) {
 
             if (keyCode == KeyEvent.VK_W) {
-                programLogic.upShapeRotate(programLogic.matrix, programLogic.currentShape);
+                programLogic.shapeRotate(1);
+                programLogic.getProgramInterface().repaint();
             }
 
             if (keyCode == KeyEvent.VK_S) {
-                programLogic.downShapeRotate(programLogic.matrix, programLogic.currentShape);
+                programLogic.shapeRotate(-1);
+                programLogic.getProgramInterface().repaint();
             }
 
             if (keyCode == KeyEvent.VK_A) {
-                programLogic.shapeMove(-1, programLogic.matrix, programLogic.currentShape);
+                programLogic.shapeMoveHorizontal(-1);
+                programLogic.getProgramInterface().repaint();
             }
 
             if (keyCode == KeyEvent.VK_D) {
-                programLogic.shapeMove(1, programLogic.matrix, programLogic.currentShape);
+                programLogic.shapeMoveHorizontal(1);
+                programLogic.getProgramInterface().repaint();
             }
 
             if (keyCode == KeyEvent.VK_SPACE) {
                 programLogic.oneTick(programLogic.matrix, programLogic.currentShape);
+                programLogic.getProgramInterface().repaint();
             }
 
         }
@@ -45,15 +50,16 @@ public class MyKeyboardListener implements KeyListener {
         }
 
         if (keyCode == KeyEvent.VK_F) {
-            programLogic.startSolveFirst();
+            programLogic.startSolveGreedy();
         }
 
         if (keyCode == KeyEvent.VK_R) {
             programLogic.setUpNewGame();
         }
 
-        if (keyCode == KeyEvent.VK_M) {
-            programLogic.startSolveMonteCarlo();
+
+        if (keyCode == KeyEvent.VK_L) {
+            programLogic.startSolveGreedyModified();
         }
     }
 
